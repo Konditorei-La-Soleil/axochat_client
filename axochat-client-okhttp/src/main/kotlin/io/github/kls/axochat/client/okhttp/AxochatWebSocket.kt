@@ -52,22 +52,26 @@ class AxochatWebSocket internal constructor(
         webSocket = client.newWebSocket(request!!, AxochatWSListener())
     }
 
+    @JvmName("ws")
     inline fun <reified T : AxochatWSEvent> on(handler: Consumer<T>) = on(T::class.java, handler)
 
+    @JvmName("ws")
     fun <T : AxochatWSEvent> on(type: Class<T>, handler: Consumer<T>) {
-        require(type !in wsEventHandlers) { "Handler of type $type is already registered" }
+        require(wsEventHandlers[type] == null) { "Handler of type $type is already registered" }
         wsEventHandlers[type] = handler as Consumer<in AxochatWSEvent>
     }
 
     inline fun <reified T : AxochatS2CPacket> on(handler: Consumer<T>) = on(T::class.java, handler)
 
     fun <T : AxochatS2CPacket> on(type: Class<T>, handler: Consumer<T>) {
-        require(type !in s2cPacketsHandlers) { "Handler of type $type is already registered" }
+        require(s2cPacketsHandlers[type] == null) { "Handler of type $type is already registered" }
         s2cPacketsHandlers[type] = handler as Consumer<in AxochatS2CPacket>
     }
 
     fun send(packet: AxochatC2SPacket) {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
+        val text = adapter.writePacket(packet)
+        webSocket!!.send(text)
     }
 
     @JvmOverloads
