@@ -8,5 +8,13 @@ allprojects {
     }
 }
 
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+
+    kotlin {
+        jvmToolchain(8)
+    }
+}
+
 group = "io.github.kls"
 version = "0.1.0"
