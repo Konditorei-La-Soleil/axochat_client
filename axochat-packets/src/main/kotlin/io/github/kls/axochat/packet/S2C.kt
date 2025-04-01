@@ -21,12 +21,10 @@ data class S2CErrorPacket(
  * This packet will be sent to every authenticated client
  * if another client successfully sent a message to the server.
  *
- * @param authorId author_id is an ID.
  * @param authorInfo author_info is optional and described in detail in UserInfo.
  * @param content content is any message fitting the validation scheme of the server.
  */
 data class S2CMessagePacket(
-    val authorId: String,
     val authorInfo: AxochatUser,
     val content: String
 ) : AxochatS2CPacket
@@ -56,12 +54,10 @@ data class S2CNewJWTPacket(
  * This packet will be sent to an authenticated client with allow_messages turned on,
  * if another client successfully sent a private message to the server with the id.
  *
- * @param authorId author_id is an ID.
  * @param authorInfo author_info is optional and described in detail in UserInfo.
  * @param content content is any message fitting the validation scheme of the server.
  */
 data class S2CPrivateMessagePacket(
-    val authorId: String,
     val authorInfo: AxochatUser,
     val content: String
 ) : AxochatS2CPacket
