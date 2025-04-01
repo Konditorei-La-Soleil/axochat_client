@@ -21,14 +21,16 @@ object AxochatClientGsonAdapter : AxochatClientPacketAdapter {
         val fullPacket = JsonParser.parseString(source)
         val name = (fullPacket as? JsonObject)?.get("m")?.asString ?: throw IllegalPacketFormatException(gson.toJson(fullPacket))
         val type = AxochatPacket.S2C_PACKETS[name] ?: throw UnknownPacketNameException(name)
-        return gson.fromJson(fullPacket["c"], type)
+        return type.kotlin.objectInstance ?: gson.fromJson(fullPacket["c"], type)
     }
 
     @Throws(IOException::class)
     override fun writePacket(packet: AxochatC2SPacket): String {
         class FullPacket(val m: String, val c: AxochatPacket?)
-        val name = AxochatPacket.C2S_PACKETS[packet.javaClass]!!
-        return gson.toJson(FullPacket(name, packet))
+        val type = packet.javaClass
+        val name = AxochatPacket.C2S_PACKETS[type]!!
+        val payload = packet.takeUnless { type.kotlin.objectInstance != null }
+        return gson.toJson(FullPacket(name, payload))
     }
 
 }

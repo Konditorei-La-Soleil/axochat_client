@@ -22,14 +22,16 @@ object AxochatClientJacksonAdapter : AxochatClientPacketAdapter {
         val fullPacket = objectMapper.readTree(source)
         val name = fullPacket["m"]?.asText() ?: throw IllegalPacketFormatException(objectMapper.writeValueAsString(fullPacket))
         val type = AxochatPacket.S2C_PACKETS[name] ?: throw UnknownPacketNameException(name)
-        return objectMapper.treeToValue(fullPacket["c"], type)
+        return type.kotlin.objectInstance ?: objectMapper.treeToValue(fullPacket["c"], type)
     }
 
     @Throws(IOException::class)
     override fun writePacket(packet: AxochatC2SPacket): String {
         class FullPacket(val m: String, val c: AxochatPacket?)
-        val name = AxochatPacket.C2S_PACKETS[packet.javaClass]!!
-        return objectMapper.writeValueAsString(FullPacket(name, packet))
+        val type = packet.javaClass
+        val name = AxochatPacket.C2S_PACKETS[type]!!
+        val payload = packet.takeUnless { type.kotlin.objectInstance != null }
+        return objectMapper.writeValueAsString(FullPacket(name, payload))
     }
 
 }
