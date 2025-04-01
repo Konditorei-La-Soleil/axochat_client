@@ -2,7 +2,7 @@ package io.github.kls.axochat.packet
 
 sealed interface AxochatPacket {
     companion object {
-        val S2C_PACKETS = mapOf(
+        val S2C_PACKETS = hashMapOf(
             "Error" to S2CErrorPacket::class.java,
             "Message" to S2CMessagePacket::class.java,
             "MojangInfo" to S2CMojangInfoPacket::class.java,
@@ -10,9 +10,9 @@ sealed interface AxochatPacket {
             "PrivateMessage" to S2CPrivateMessagePacket::class.java,
             "Success" to S2CSuccessPacket::class.java,
             "UserCount" to S2CUserCountPacket::class.java,
-        )
+        ).unmodifiable()
 
-        val C2S_PACKETS = mapOf(
+        val C2S_PACKETS = hashMapOf(
             C2SBanUserPacket::class.java to "BanUser",
             C2SLoginJWTPacket::class.java to "LoginJWT",
             C2SLoginMojangPacket::class.java to "LoginMojang",
@@ -24,7 +24,10 @@ sealed interface AxochatPacket {
             C2SRequestMojangInfoPacket::class.java to "RequestMojangInfo",
             C2SRequestUserCountPacket::class.java to "RequestUserCount",
             C2SUnbanUserPacket::class.java to "UnbanUser",
-        )
+        ).unmodifiable()
+
+        @Suppress("NOTHING_TO_INLINE")
+        private inline fun <K, V> Map<K, V>.unmodifiable(): Map<K, V> = java.util.Collections.unmodifiableMap(this)
     }
 }
 
