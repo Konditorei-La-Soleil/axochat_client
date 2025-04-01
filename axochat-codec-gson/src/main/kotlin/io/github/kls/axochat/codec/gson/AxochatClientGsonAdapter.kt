@@ -8,8 +8,6 @@ import io.github.kls.axochat.exception.IllegalPacketFormatException
 import io.github.kls.axochat.exception.UnknownPacketNameException
 import io.github.kls.axochat.packet.*
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import kotlin.jvm.Throws
 
 object AxochatClientGsonAdapter : AxochatClientPacketAdapter {
@@ -19,19 +17,18 @@ object AxochatClientGsonAdapter : AxochatClientPacketAdapter {
         .create()
 
     @Throws(IOException::class)
-    override fun InputStream.readPacket(): AxochatS2CPacket {
-        val fullPacket = JsonParser.parseReader(gson.newJsonReader(this.reader()))
+    override fun readPacket(source: String): AxochatS2CPacket {
+        val fullPacket = JsonParser.parseString(source)
         val name = (fullPacket as? JsonObject)?.get("m")?.asString ?: throw IllegalPacketFormatException(gson.toJson(fullPacket))
         val type = AxochatPacket.S2C_PACKETS[name] ?: throw UnknownPacketNameException(name)
         return gson.fromJson(fullPacket["c"], type)
     }
 
     @Throws(IOException::class)
-    override fun OutputStream.writePacket(packet: AxochatC2SPacket) {
+    override fun writePacket(packet: AxochatC2SPacket): String {
         class FullPacket(val m: String, val c: AxochatPacket?)
         val name = AxochatPacket.C2S_PACKETS[packet.javaClass]!!
-        gson.toJson(FullPacket(name, packet), this.writer())
-        this.flush()
+        return gson.toJson(FullPacket(name, packet))
     }
 
 }
