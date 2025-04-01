@@ -48,6 +48,7 @@ class AxochatWebSocket internal constructor(
 
     fun start() = apply {
         requireNotNull(request) { "Request is uninitialized" }
+        require(webSocket == null) { "WebSocket is already started" }
         webSocket = client.newWebSocket(request!!, AxochatWSListener())
     }
 
