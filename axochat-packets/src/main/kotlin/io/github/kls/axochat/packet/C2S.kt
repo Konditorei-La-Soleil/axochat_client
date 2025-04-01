@@ -11,11 +11,25 @@ import java.util.*
  */
 
 /**
- * To log in via mojang, the client has to send a RequestMojangInfo packet.
- * The server will then send a MojangInfo to the client.
- * This packet has no body.
+ * A client can send this packet to ban other users from using this chat.
+ *
+ * @param user user is an ID.
  */
-data object C2SRequestMojangInfoPacket : AxochatC2SPacket
+data class C2SBanUserPacket(
+    val user: String
+) : AxochatC2SPacket
+
+/**
+ * To log in using a json web token, the client has to send a LoginJWT packet.
+ * it will send Success if the login was successful.
+ *
+ * @param token can be retrieved by sending RequestJWT on an already authenticated connection.
+ * @param allowMessages If allow_messages is true, other clients may send private messages to this client.
+ */
+data class C2SLoginJWTPacket(
+    val token: String,
+    val allowMessages: Boolean
+) : AxochatC2SPacket
 
 /**
  * After the client received a MojangInfo packet and authenticating itself with mojang,
@@ -29,18 +43,6 @@ data object C2SRequestMojangInfoPacket : AxochatC2SPacket
 data class C2SLoginMojangPacket(
     val name: String,
     val uuid: UUID,
-    val allowMessages: Boolean
-) : AxochatC2SPacket
-
-/**
- * To log in using a json web token, the client has to send a LoginJWT packet.
- * it will send Success if the login was successful.
- *
- * @param token can be retrieved by sending RequestJWT on an already authenticated connection.
- * @param allowMessages If allow_messages is true, other clients may send private messages to this client.
- */
-data class C2SLoginJWTPacket(
-    val token: String,
     val allowMessages: Boolean
 ) : AxochatC2SPacket
 
@@ -65,13 +67,26 @@ data class C2SPrivateMessagePacket(
 ) : AxochatC2SPacket
 
 /**
- * A client can send this packet to ban other users from using this chat.
+ * To log in using LoginJWT, a client needs to own a json web token.
+ * This token can be retrieved by sending RequestJWT as an already authenticated client to the server.
+ * The server will send a NewJWT packet to the client.
  *
- * @param user user is an ID.
+ * This packet has no body.
  */
-data class C2SBanUserPacket(
-    val user: String
-) : AxochatC2SPacket
+data object C2SRequestJWTPacket : AxochatC2SPacket
+
+/**
+ * To log in via mojang, the client has to send a RequestMojangInfo packet.
+ * The server will then send a MojangInfo to the client.
+ * This packet has no body.
+ */
+data object C2SRequestMojangInfoPacket : AxochatC2SPacket
+
+/**
+ * After receiving this packet, the server will then send a UserCount packet to the client.
+ * This packet has no body.
+ */
+data object C2SRequestUserCountPacket : AxochatC2SPacket
 
 /**
  * A client can send this packet to unban other users.
@@ -81,12 +96,3 @@ data class C2SBanUserPacket(
 data class C2SUnbanUserPacket(
     val user: String
 ) : AxochatC2SPacket
-
-/**
- * To log in using LoginJWT, a client needs to own a json web token.
- * This token can be retrieved by sending RequestJWT as an already authenticated client to the server.
- * The server will send a NewJWT packet to the client.
- *
- * This packet has no body.
- */
-data object C2SRequestJWTPacket : AxochatC2SPacket

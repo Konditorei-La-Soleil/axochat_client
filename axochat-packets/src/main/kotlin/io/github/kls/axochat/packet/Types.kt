@@ -8,7 +8,7 @@ import java.util.*
  * @param name of user
  * @param uuid of user
  */
-data class User(
+data class AxochatUser(
     val name: String,
     val uuid: UUID
 )

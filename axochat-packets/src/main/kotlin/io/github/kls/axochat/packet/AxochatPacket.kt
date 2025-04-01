@@ -1,6 +1,32 @@
 package io.github.kls.axochat.packet
 
-sealed interface AxochatPacket
+sealed interface AxochatPacket {
+    companion object {
+        val S2C_PACKETS = mapOf(
+            "Error" to S2CErrorPacket::class.java,
+            "Message" to S2CMessagePacket::class.java,
+            "MojangInfo" to S2CMojangInfoPacket::class.java,
+            "NewJWT" to S2CNewJWTPacket::class.java,
+            "PrivateMessage" to S2CPrivateMessagePacket::class.java,
+            "Success" to S2CSuccessPacket::class.java,
+            "UserCount" to S2CUserCountPacket::class.java,
+        )
+
+        val C2S_PACKETS = mapOf(
+            C2SBanUserPacket::class.java to "BanUser",
+            C2SLoginJWTPacket::class.java to "LoginJWT",
+            C2SLoginMojangPacket::class.java to "LoginMojang",
+            C2SMessagePacket::class.java to "Message",
+            C2SPrivateMessagePacket::class.java to "PrivateMessage",
+            C2SRequestJWTPacket::class.java to "RequestJWT",
+            C2SPrivateMessagePacket::class.java to "PrivateMessage",
+            C2SRequestJWTPacket::class.java to "RequestJWT",
+            C2SRequestMojangInfoPacket::class.java to "RequestMojangInfo",
+            C2SRequestUserCountPacket::class.java to "RequestUserCount",
+            C2SUnbanUserPacket::class.java to "UnbanUser",
+        )
+    }
+}
 
 sealed interface AxochatS2CPacket : AxochatPacket
 
