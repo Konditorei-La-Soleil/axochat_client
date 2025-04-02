@@ -1,5 +1,5 @@
 # AxoChat Client
-A generic server for chat features in Minecraft modifications utilizing the Mojang authentication scheme and WebSockets. LiquidBounce employs it for its global chat feature, which allows users to communicate with other people using the client regardless of the current server.
+AxoChat is a generic server for chat features in Minecraft modifications utilizing the Mojang authentication scheme and WebSockets. LiquidBounce employs it for its global chat feature, which allows users to communicate with other people using the client regardless of the current server.
 
 This project aims to provide an out-of-the-box Axochat client implementation for the Minecraft ecosystem (typically based on the JVM). It includes basic data type definitions and implementations for both the client and serialization modules. Currently, it offers a client based on **OkHttp** and serialization support using **Gson**/**Jackson**.
 
