@@ -46,9 +46,14 @@ class AxochatWebSocket internal constructor(
         return request!!.url
     }
 
-    fun start() = apply {
+    @JvmOverloads
+    fun start(closeExisting: Boolean = false) = apply {
         requireNotNull(request) { "Request is uninitialized" }
-        require(webSocket == null) { "WebSocket is already started" }
+        if (closeExisting) {
+            webSocket?.close(WebSocketCloseCodes.NORMAL_CLOSURE, null)
+        } else {
+            require(webSocket == null) { "WebSocket is already started" }
+        }
         webSocket = client.newWebSocket(request!!, AxochatWSListener())
     }
 
@@ -75,9 +80,10 @@ class AxochatWebSocket internal constructor(
     }
 
     @JvmOverloads
-    fun close(code: Int = 1000, reason: String? = null) {
+    fun close(code: Int = WebSocketCloseCodes.NORMAL_CLOSURE, reason: String? = null) {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
         webSocket!!.close(code, reason)
+        webSocket = null
     }
 
     private inner class AxochatWSListener : WebSocketListener() {
