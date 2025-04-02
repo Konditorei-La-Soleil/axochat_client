@@ -1,13 +1,13 @@
 package io.github.kls.axochat.client.okhttp
 
 import io.github.kls.axochat.client.okhttp.event.*
+import io.github.kls.axochat.client.okhttp.internal.createEventMap
 import io.github.kls.axochat.packet.AxochatC2SPacket
 import io.github.kls.axochat.packet.AxochatClientPacketAdapter
 import io.github.kls.axochat.packet.AxochatPacket
 import io.github.kls.axochat.packet.AxochatS2CPacket
 import okhttp3.*
 import java.net.URL
-import java.util.IdentityHashMap
 import java.util.function.Consumer
 
 class AxochatWebSocket internal constructor(
@@ -17,12 +17,11 @@ class AxochatWebSocket internal constructor(
 
     private var request: Request? = null
     private var webSocket: WebSocket? = null
-    private val wsEventHandlers = IdentityHashMap<Class<out AxochatWSEvent>, Consumer<in AxochatWSEvent>?>().apply {
-        AxochatWSEvent.ALL_EVENTS.forEach { put(it, null) }
-    }
-    private val s2cPacketsHandlers = IdentityHashMap<Class<out AxochatS2CPacket>, Consumer<in AxochatS2CPacket>?>().apply {
-        AxochatPacket.S2C_PACKETS.values.forEach { put(it, null) }
-    }
+
+    private val wsEventHandlers =
+        createEventMap<AxochatWSEvent, Consumer<in AxochatWSEvent>?>(AxochatWSEvent.ALL_EVENTS) { null }
+    private val s2cPacketsHandlers =
+        createEventMap<AxochatS2CPacket, Consumer<in AxochatS2CPacket>?>(AxochatPacket.S2C_PACKETS.values) { null }
 
     private inline fun <reified T : AxochatWSEvent> exec(provider: () -> T) {
         wsEventHandlers[T::class.java]?.accept(provider())
@@ -61,26 +60,26 @@ class AxochatWebSocket internal constructor(
     inline fun <reified T : AxochatWSEvent> on(handler: Consumer<T>) = on(T::class.java, handler)
 
     @JvmName("ws")
-    fun <T : AxochatWSEvent> on(type: Class<T>, handler: Consumer<T>) {
+    fun <T : AxochatWSEvent> on(type: Class<T>, handler: Consumer<T>) = apply {
         require(wsEventHandlers[type] == null) { "Handler of type $type is already registered" }
         wsEventHandlers[type] = handler as Consumer<in AxochatWSEvent>
     }
 
     inline fun <reified T : AxochatS2CPacket> on(handler: Consumer<T>) = on(T::class.java, handler)
 
-    fun <T : AxochatS2CPacket> on(type: Class<T>, handler: Consumer<T>) {
+    fun <T : AxochatS2CPacket> on(type: Class<T>, handler: Consumer<T>) = apply {
         require(s2cPacketsHandlers[type] == null) { "Handler of type $type is already registered" }
         s2cPacketsHandlers[type] = handler as Consumer<in AxochatS2CPacket>
     }
 
-    fun send(packet: AxochatC2SPacket) {
+    fun send(packet: AxochatC2SPacket) = apply {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
         val text = adapter.writePacket(packet)
         webSocket!!.send(text)
     }
 
     @JvmOverloads
-    fun close(code: Int = WebSocketCloseCodes.NORMAL_CLOSURE, reason: String? = null) {
+    fun close(code: Int = WebSocketCloseCodes.NORMAL_CLOSURE, reason: String? = null) = apply {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
         webSocket!!.close(code, reason)
         webSocket = null
