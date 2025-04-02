@@ -56,23 +56,62 @@ class AxochatWebSocket internal constructor(
         webSocket = client.newWebSocket(request!!, AxochatWSListener())
     }
 
-    @JvmName("ws")
-    fun <T : AxochatWSEvent> on(type: Class<T>, handler: Consumer<T>) = apply {
+    fun <T : AxochatWSEvent> ws(
+        type: Class<T>,
+        handler: Consumer<T>
+    ) = apply {
         require(wsEventHandlers[type] == null) { "Handler of type $type is already registered" }
+        @Suppress("UNCHECKED_CAST")
         wsEventHandlers[type] = handler as Consumer<in AxochatWSEvent>
     }
 
-    @JvmName("ws")
-    inline fun <reified T : AxochatWSEvent> on(crossinline handler: AxochatWebSocket.(T) -> Unit) =
-        on(T::class.java) { handler(this, it) }
+    inline fun <reified T : AxochatWSEvent> ws(
+        override: Boolean = false,
+        crossinline handler: AxochatWebSocket.(T) -> Unit
+    ) = apply {
+        if (override) dropHandler(T::class.java)
+        ws(T::class.java) { handler(this, it) }
+    }
 
-    fun <T : AxochatS2CPacket> on(type: Class<T>, handler: Consumer<T>) = apply {
+    @JvmName("dropWSHandler")
+    fun dropHandler(type: Class<out AxochatWSEvent>) = apply {
+        wsEventHandlers[type] = null
+    }
+
+    inline fun <reified T : AxochatWSEvent> dropWS() = dropHandler(T::class.java)
+
+    @JvmName("dropWSHandlers")
+    fun dropHandler(vararg types: Class<out AxochatWSEvent>) = apply {
+        types.forEach { dropHandler(it) }
+    }
+
+    fun <T : AxochatS2CPacket> on(
+        type: Class<T>,
+        handler: Consumer<T>
+    ) = apply {
         require(s2cPacketsHandlers[type] == null) { "Handler of type $type is already registered" }
+        @Suppress("UNCHECKED_CAST")
         s2cPacketsHandlers[type] = handler as Consumer<in AxochatS2CPacket>
     }
 
-    inline fun <reified T : AxochatS2CPacket> on(crossinline handler: AxochatWebSocket.(T) -> Unit) =
+    inline fun <reified T : AxochatS2CPacket> on(
+        override: Boolean = false,
+        crossinline handler: AxochatWebSocket.(T) -> Unit
+    ) = apply {
+        if (override) dropHandler(T::class.java)
         on(T::class.java) { handler(this, it) }
+    }
+
+    fun dropHandler(type: Class<out AxochatS2CPacket>) = apply {
+        s2cPacketsHandlers[type] = null
+    }
+
+    inline fun <reified T : AxochatS2CPacket> drop() = dropHandler(T::class.java)
+
+    @JvmName("dropHandlers")
+    fun dropHandler(vararg types: Class<out AxochatS2CPacket>) = apply {
+        types.forEach { dropHandler(it) }
+    }
 
     fun send(packet: AxochatC2SPacket) = apply {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
@@ -81,7 +120,10 @@ class AxochatWebSocket internal constructor(
     }
 
     @JvmOverloads
-    fun close(code: Int = WebSocketCloseCodes.NORMAL_CLOSURE, reason: String? = null) = apply {
+    fun close(
+        code: Int = WebSocketCloseCodes.NORMAL_CLOSURE,
+        reason: String? = null
+    ) = apply {
         requireNotNull(webSocket) { "WebSocket is uninitialized" }
         webSocket!!.close(code, reason)
         webSocket = null
